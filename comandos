@@ -1,0 +1,17 @@
+make clean
+
+make
+
+sudo insmod driver.ko
+
+sudo rmmod driver
+
+dmesg
+
+lsmod
+
+sudo evtest
+
+ls /dev/input/
+
+jstest /dev/input/js0
