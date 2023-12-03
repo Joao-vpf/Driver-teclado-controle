@@ -56,9 +56,9 @@ O direcional esquerdo segue o movimento do mouse.
 
 #### Botões superiores meio
 
-**NUM LOCK**: Associado a letra __START__ do controle.</br>
-**END**: Associado a letra __MENU__ do controle.</br>
-**HOME**: Associado a letra __XBOX__ do controle.</br>
+**NUM LOCK**: Associado ao __START__ do controle.</br>
+**END**: Associado ao __MENU__ do controle.</br>
+**HOME**: Associado ao __XBOX__ do controle.</br>
 
 #### Setas do controle
 
@@ -92,7 +92,7 @@ dmesg
 
 1. Como o driver executa usando o teclado e o mouse pode acontecer de desconectar um ou ambos do computador, caso aconteça reiniciar o sistema.
 2. No caso do módulo não ser retirado com sucesso é necessário reiniciar o sistema.
-
+3. O verdadeiro nome dos botões do meio são: (START == START), (XBOX == MODE) e (MENU == SELECT).
 
 ## Licença
 
