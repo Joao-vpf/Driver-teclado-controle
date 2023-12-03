@@ -27,15 +27,19 @@
 #include <linux/unistd.h>
 #include <linux/semaphore.h>
 #include <linux/keyboard.h>
+#include <linux/notifier.h>
+#include <linux/mutex.h>
 #include <asm/io.h>  
-
+#include <linux/miscdevice.h> 
+#include <linux/fs.h>
+#include <linux/uaccess.h>
 
 #define KBD_DATA_REG 0x60 
 #define IRQ_CONTROLE 1
+#define IRQ_HANDLED 1
 
 static struct semaphore sem;
 static struct input_dev *input_control;
-static struct input_dev *input_mouse;
 
 int random_range(int min, int max, int* x)
 {//Função que cria um valor aletario no range do min até o maximo
@@ -53,20 +57,62 @@ int random_range(int min, int max, int* x)
 
 //Posição da tecla
 int altW=1,altS=1,altA=1,altD=1;
+int altE=1,altQ=1,altV=1,altB=1;
 
 /* INICIO TECLADO */
 static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code, void *_param) 
 {
 	struct keyboard_notifier_param *param = _param;
-
+	
+	//Random range é chamado para imitar a imprecisão do usuario no controle e fazer o sistema continuar identificando o controle
     if (code == KBD_KEYCODE) 
     {
         down(&sem);
-        pr_info("Tecla pressionada: %x\n", param->value);
         if (param->down) 
         {		
+        
+            //Direcional esquerdo
+            //E -> Direcional direita
+            if(param->value ==  0x12)
+			{
+				printk(KERN_INFO "E -> Direcional direita");
+				input_event(input_control, EV_ABS, ABS_Y, random_range(-10, 10, &altE));
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X, -32767);
+				input_sync(input_control);
+			}
+			
+			//Q -> Direcional esquerda
+			if(param->value  ==  0x10)
+			{
+				printk(KERN_INFO "Q -> Direcional esquerda");
+				input_event(input_control, EV_ABS, ABS_Y,random_range(-10, 10 ,&altQ));
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X, 32767);
+				input_sync(input_control);
+			}
+			
+			//V -> Direcional cima
+            if(param->value ==  0x2F)
+			{
+				printk(KERN_INFO "V -> Direcional cima");
+				input_event(input_control, EV_ABS, ABS_Y, -32767);
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X,  random_range(-10, 10, &altV));
+				input_sync(input_control);
+			}
+			
+			//B -> Direcional baixo
+			if(param->value  ==  0x30)
+			{
+				printk(KERN_INFO "B -> Direcional baixo");
+				input_event(input_control, EV_ABS, ABS_Y, 32767);
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X, random_range(-10, 10, &altB));
+				input_sync(input_control);
+			}
+			
 			//Direcional direito
-			//Random range é chamado para imitar a imprecisão do usuario no controle e fazer o sistema continuar identificando o controle
 			
 			//A -> Direcional direita
 			if(param->value ==  0x1E)
@@ -82,7 +128,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			//W -> Direcional cima
 			if(param->value  ==  0x11)
 			{
-				printk(KERN_INFO "W -> Direcional direita");
+				printk(KERN_INFO "W -> Direcional cima");
 				// Tecla do W pressionada
 				input_event(input_control, EV_ABS, ABS_RY, -32767);
 				input_sync(input_control);
@@ -93,7 +139,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			//S -> Direcional baixo
 			if(param->value == 0x1F)
 			{
-				printk(KERN_INFO "S -> Direcional direita");
+				printk(KERN_INFO "S -> Direcional baixo");
 				// Tecla do S pressionada
 				input_event(input_control, EV_ABS, ABS_RY, 32767);
 				input_sync(input_control);
@@ -104,7 +150,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			//D -> Direcional esquerda
 			if(param->value == 0x20)
 			{
-				printk(KERN_INFO "D -> Direcional direita");
+				printk(KERN_INFO "D -> Direcional esquerda");
 				// Tecla do D pressionada
 				input_event(input_control, EV_ABS, ABS_RY,random_range(-10, 10 ,&altD));
 				input_sync(input_control);
@@ -124,20 +170,20 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			   
 			}
 			
-			// E -> B
-			if(param->value == 0x12)
+			// Z -> B
+			if(param->value == 0x2C)
 			{
-				printk(KERN_INFO "E -> B");
+				printk(KERN_INFO "Z -> B");
 				// Tecla do E pressionada
 				input_event(input_control, EV_KEY, BTN_EAST, 1);  // 1 indica que a tecla foi pressionada
 				input_sync(input_control);
 			   
 			}
 			
-			// Q -> X
-			if(param->value == 0x10)
+			// X -> X
+			if(param->value == 0x2D)
 			{
-				printk(KERN_INFO "Q -> X");
+				printk(KERN_INFO "X -> X");
 				// Tecla do Q pressionada
 				input_event(input_control, EV_KEY, BTN_NORTH, 1);  // 1 indica que a tecla foi pressionada
 				input_sync(input_control);
@@ -205,7 +251,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 			
 			// END -> MENU
-			if(param->value == 0x4f)
+			if(param->value == 0x6B)
 			{
 				printk(KERN_INFO "END -> Seta cima");
 				// Tecla do END pressionada
@@ -215,7 +261,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 			
 			// HOME -> XBOX
-			if(param->value == 0x47)
+			if(param->value == 0x66)
 			{
 				printk(KERN_INFO "HOME -> Seta cima");
 				// Tecla do HOME pressionada
@@ -246,10 +292,71 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			   
 			}
 			
+			// 3 -> LT
+			if(param->value == 0x4)
+			{
+				printk(KERN_INFO "3 -> LT");
+				// Tecla do 3 pressionada
+				input_event(input_control, EV_KEY, BTN_THUMBL, 1);  // 1 indica que a tecla foi pressionada
+				input_sync(input_control);
+			   
+			}
+			
+			// 4 -> RT
+			if(param->value == 0x5)
+			{
+				printk(KERN_INFO "4 -> RT");
+				// Tecla do 4 pressionada
+				input_event(input_control, EV_KEY, BTN_THUMBR, 1);  // 1 indica que a tecla foi pressionada
+				input_sync(input_control);
+			   
+			}
+			
+			
+			
 			input_sync(input_control);
         }
         else
         {
+            //Direcional esquerdo
+            
+            //E -> Direcional direita
+            if(param->value ==  0x12)
+			{
+				input_event(input_control, EV_ABS, ABS_Y, 0);
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X, 0);
+				input_sync(input_control);
+			}
+			
+			//Q -> Direcional esquerda
+			if(param->value  ==  0x10)
+			{
+				input_event(input_control, EV_ABS, ABS_Y, 0);
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X, 0);
+				input_sync(input_control);
+			}
+			
+			//V -> Direcional cima
+            if(param->value ==  0x2F)
+			{
+				input_event(input_control, EV_ABS, ABS_Y, 0);
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X, 0);
+				input_sync(input_control);
+			}
+			
+			//B -> Direcional baixo
+			if(param->value  ==  0x30)
+			{
+				input_event(input_control, EV_ABS, ABS_Y, 0);
+				input_sync(input_control);
+				input_event(input_control, EV_ABS, ABS_X, 0);
+				input_sync(input_control);
+			}
+			
+            //Direcional direito 
 			//A -> Direcional direita
 			if(param->value ==  0x1E)
 			{
@@ -300,18 +407,18 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 				input_sync(input_control);
 			} 
 			
-			// E -> B
-			if (param->value == 0x12) 
+			// Z -> B
+			if (param->value == 0x2C) 
 			{
-				// Tecla do E solta
+				// Tecla do Z solta
 				input_event(input_control, EV_KEY, BTN_EAST, 0);  // 0 indica que a tecla foi solta
 				input_sync(input_control);
 			} 
 			
-			// Q -> X
-			if (param->value == 0x10) 
+			// X -> X
+			if (param->value == 0x2D) 
 			{
-				// Tecla do Q solta
+				// Tecla do X solta
 				input_event(input_control, EV_KEY, BTN_NORTH, 0);  // 0 indica que a tecla foi solta
 				input_sync(input_control);
 			} 
@@ -369,7 +476,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			} 
 			
 			// END -> MENU
-			if (param->value == 0x4f) 
+			if (param->value == 0x6B) 
 			{
 				// Tecla do END solta
 				input_event(input_control, EV_KEY, BTN_SELECT, 0);  // 0 indica que a tecla foi solta
@@ -377,7 +484,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			} 
 			
 			// HOME -> XBOX
-			if (param->value == 0x47) 
+			if (param->value == 0x66) 
 			{
 				// Tecla do HOME solta
 				input_event(input_control, EV_KEY, BTN_MODE, 0);  // 0 indica que a tecla foi solta
@@ -402,6 +509,21 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 				input_sync(input_control);
 			} 
 			
+			// 3 -> LT
+			if(param->value == 0x4)
+			{
+				input_event(input_control, EV_KEY, BTN_THUMBL, 0);  // 1 indica que a tecla foi pressionada
+				input_sync(input_control);
+			   
+			}
+			
+			// 4 -> RT
+			if(param->value == 0x5)
+			{
+				input_event(input_control, EV_KEY, BTN_THUMBR, 0);  // 1 indica que a tecla foi pressionada
+				input_sync(input_control);
+			   
+			}
 			input_sync(input_control);
 		}
         up(&sem);
@@ -410,11 +532,11 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
     return NOTIFY_OK;
 }
 
+static struct notifier_block my_keyboard_notifier = {
+    .notifier_call = my_keyboard_notify
+};
+
 /* FIM TECLADO */
-
-/* INICIO MOUSE */
-
-/* FIM MOUSE */
 
 
 /* INICIO CONTROLE */
@@ -432,8 +554,8 @@ void setup_controller_events(struct input_dev *input_control)
     set_bit(BTN_SELECT, input_control->keybit); //MENU
     set_bit(BTN_START, input_control->keybit); //START
     set_bit(BTN_MODE, input_control->keybit); //XBOX
-    set_bit(BTN_THUMBL, input_control->keybit);
-    set_bit(BTN_THUMBR, input_control->keybit);
+    set_bit(BTN_THUMBL, input_control->keybit); //LT
+    set_bit(BTN_THUMBR, input_control->keybit); //RT
 
     // Configura eventos específicos de eixos para o dispositivo de controle
     set_bit(EV_ABS, input_control->evbit);
@@ -459,25 +581,15 @@ void setup_controller_events(struct input_dev *input_control)
 
 /* FIM CONTROLE */
 
-/* INICIO CONFIG NOTIFIER */
-static struct notifier_block my_keyboard_notifier = {
-    .notifier_call = my_keyboard_notify
-};
-
-
-/* FIM CONFIG NOTIFIER */
 
 static int __init keylogger_init(void)
 {
     //Configuração para teclado
     sema_init(&sem, 1);
     register_keyboard_notifier(&my_keyboard_notifier);
-  
-		
-  
-  
+
     
-    // Cria um dispositivo de entrada para controle
+	// Cria um dispositivo de entrada para controle
     input_control = input_allocate_device();
     if (!input_control)
     {
@@ -513,7 +625,7 @@ static void __exit keylogger_exit(void)
 
     // Desregistra o notificador de teclado
     unregister_keyboard_notifier(&my_keyboard_notifier);
-
+    
     // Desregistrar o dispositivo de controle
     input_unregister_device(input_control);
 
