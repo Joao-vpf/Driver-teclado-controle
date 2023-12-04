@@ -1,4 +1,4 @@
-# Driver de Teclado e Controle Linux
+# Driver de Teclado para controle Linux
 
 ## Autor
 
@@ -38,7 +38,10 @@ Ao carregar o módulo, ele começará a interceptar as teclas do teclado padrão
 
 ##### Direcional esquerdo
 
-O direcional esquerdo segue o movimento do mouse.
+**V**: Associado ao direcional esquerdo para cima.</br>
+**B**: Associado ao direcional esquerdo para baixo.</br>
+**Q**: Associado ao direcional esquerdo para esquerda.</br>
+**E**: Associado ao direcional esquerdo para direita.</br>
 
 ##### Direcional direito
 
@@ -50,8 +53,8 @@ O direcional esquerdo segue o movimento do mouse.
 ##### Botões superiores direita
 
 **Espaço**: Associado a letra __A__ do controle.</br>
-**E**: Associado a letra __B__ do controle.</br>
-**Q**: Associado a letra __X__ do controle.</br>
+**Z**: Associado a letra __B__ do controle.</br>
+**X**: Associado a letra __X__ do controle.</br>
 **F**: Associado a letra __Y__ do controle.</br>
 
 #### Botões superiores meio
@@ -71,8 +74,8 @@ O direcional esquerdo segue o movimento do mouse.
 
 **1**: Associado ao __LB__.</br>
 **2**: Associado ao __RB__.</br>
-**Botão esquerdo do mouse**: Associado ao __LT__.</br>
-**Botão direito do mouse**:  Associado ao __RT__.</br>
+**3*: Associado ao __LT__.</br>
+**4**:  Associado ao __RT__.</br>
 
 ## Desinstalação
 
