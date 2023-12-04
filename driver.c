@@ -18,28 +18,23 @@
  * 02110-1301, USA.
  */
 
-#include <linux/module.h>
-#include <linux/interrupt.h>
-#include <linux/irq.h>
-#include <linux/input.h>
-#include <linux/random.h>
-#include <linux/fcntl.h>
-#include <linux/unistd.h>
-#include <linux/semaphore.h>
-#include <linux/keyboard.h>
-#include <linux/notifier.h>
-#include <linux/mutex.h>
-#include <asm/io.h>  
-#include <linux/miscdevice.h> 
-#include <linux/fs.h>
-#include <linux/uaccess.h>
+#include <linux/module.h>       // Biblioteca essencial para módulos do kernel.
+#include <linux/interrupt.h>    // Fornece suporte para manipulação de interrupções.
+#include <linux/irq.h>          // Contém macros para trabalhar com IRQs.
+#include <linux/input.h>        // Oferece suporte para dispositivos de entrada.
+#include <linux/random.h>       // Utilizada para geração de números aleatórios.
+#include <linux/semaphore.h>    // Fornece semáforos para controle de concorrência.
+#include <linux/keyboard.h>     // Define constantes para códigos de teclas.
+#include <linux/notifier.h>     // Usada para notificações no kernel.
+#include <linux/mutex.h>        // Oferece mutex para exclusão mútua.
+#include <asm/io.h>             // Fornece operações de E/S de baixo nível.
 
-#define KBD_DATA_REG 0x60 
-#define IRQ_CONTROLE 1
-#define IRQ_HANDLED 1
+#define KBD_DATA_REG 0x60    // Endereço do registrador de dados do teclado. Pode variar de acordo com a arquitetura.
+#define IRQ_CONTROLE 1        // Número da IRQ associada ao controle. Utilizado na configuração de interrupções.
+#define IRQ_HANDLED 1         // Valor de retorno para indicar que a interrupção foi tratada com sucesso.
 
-static struct semaphore sem;
-static struct input_dev *input_control;
+static struct semaphore sem;           // Semáforo usado para sincronização e exclusão mútua entre threads.
+static struct input_dev *input_control; // Estrutura para representar o dispositivo de entrada do controle.
 
 int random_range(int min, int max, int* x)
 {//Função que cria um valor aletario no range do min até o maximo
@@ -203,7 +198,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			//Setas do controle
 			
 			//Arrow up -> Seta cima
-			if(param->value == 0x48)
+			if(param->value == 0x67)
 			{
 				printk(KERN_INFO "Arrow up -> Seta cima");
 				// Tecla do Arrow up pressionada
@@ -212,7 +207,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 			
 			//Arrow down -> Seta baixo
-			if(param->value == 0x50)
+			if(param->value == 0x6C)
 			{
 				printk(KERN_INFO "Arrow down -> Seta cima");
 				// Tecla do Arrow down pressionada
@@ -221,7 +216,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 			
 			//Arrow right -> Seta direita
-			if(param->value == 0x4D)
+			if(param->value == 0x6A)
 			{
 				printk(KERN_INFO "Arrow right -> Seta cima");
 				// Tecla do Arrow right pressionada
@@ -230,7 +225,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 			
 			//Arrow left -> Seta esquerda
-			if(param->value == 0x4B)
+			if(param->value == 0x69)
 			{
 				printk(KERN_INFO "Arrow left -> Seta cima");
 				// Tecla do Arrow left pressionada
@@ -434,7 +429,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			//Setas do controle
 			
 			//Arrow up -> Seta cima
-			if(param->value == 0x48)
+			if(param->value == 0x67)
 			{
 				// Tecla do Arrow up solta
 				input_event(input_control, EV_ABS, ABS_HAT0Y, 0);
@@ -442,7 +437,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 			
 			//Arrow down -> Seta baixo
-			if(param->value == 0x50)
+			if(param->value == 0x6C)
 			{
 				// Tecla do Arrow down solta
 				input_event(input_control, EV_ABS, ABS_HAT0Y, 0);
@@ -450,7 +445,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 
 			//Arrow right -> Seta direita
-			if(param->value == 0x4D)
+			if(param->value == 0x6A)
 			{
 				// Tecla do Arrow right solta
 				input_event(input_control, EV_ABS, ABS_HAT0X, 0);
@@ -458,7 +453,7 @@ static int my_keyboard_notify(struct notifier_block *nblock, unsigned long code,
 			}
 			
 			//Arrow left -> Seta esquerda
-			if(param->value == 0x4B)
+			if(param->value == 0x69)
 			{
 				// Tecla do Arrow left solta
 				input_event(input_control, EV_ABS, ABS_HAT0X, 0);
@@ -568,7 +563,7 @@ void setup_controller_events(struct input_dev *input_control)
     input_set_abs_params(input_control, ABS_HAT0X, -1, 1, 0, 0);//Setas
     input_set_abs_params(input_control, ABS_HAT0Y, -1, 1, 0, 0);//Setas
 
-    // Configura eventos específicos de força de feedback para o dispositivo de controle
+    // Configura eventos específicos de força de feedback para o dispositivo de controle NÃO SERA USADA
     set_bit(EV_FF, input_control->evbit);
     set_bit(FF_RUMBLE, input_control->ffbit);
     set_bit(FF_PERIODIC, input_control->ffbit);
@@ -589,7 +584,7 @@ static int __init keylogger_init(void)
     register_keyboard_notifier(&my_keyboard_notifier);
 
     
-	// Cria um dispositivo de entrada para controle
+	// Cria um dispositivo de entrada para controle simulado
     input_control = input_allocate_device();
     if (!input_control)
     {
@@ -597,6 +592,7 @@ static int __init keylogger_init(void)
         return -ENOMEM;
     }
     
+    //Inicializa os o controle simulado
     setup_controller_events(input_control);
     
     //Registra um nome para o dispostivo
@@ -616,7 +612,7 @@ static int __init keylogger_init(void)
         return -EINVAL;
     }
     
-    printk(KERN_INFO "keylogger: Driver teclado/mouse-> controle carregado\n");
+    printk(KERN_INFO "keylogger: Driver teclado -> controle carregado\n");
     return 0;
 }
 
@@ -633,14 +629,13 @@ static void __exit keylogger_exit(void)
     free_irq(IRQ_CONTROLE, input_control);
 
 
-    printk(KERN_INFO "keylogger: Driver teclado/mouse-> controle descarregado\n");
+    printk(KERN_INFO "keylogger: Driver teclado-> controle descarregado\n");
 }
-
-
-
+//Saida do modulo
 module_init(keylogger_init);
 module_exit(keylogger_exit);
 
+//Configurações do modulo
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Portin");
-MODULE_DESCRIPTION("Driver de cria");
+MODULE_DESCRIPTION("Driver para simular um controle pelo teclado");
