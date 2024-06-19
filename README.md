@@ -1,4 +1,4 @@
-# Driver de Teclado para controle Linux
+# Driver para o sistema operacional linux que simula o controle pelo teclado e mouse
 
 ## Autor
 
